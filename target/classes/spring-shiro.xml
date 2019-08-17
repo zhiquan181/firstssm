@@ -1,0 +1,46 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+    <!-- Realm实现 -->
+    <bean id="customRealm" class="com.javen.shirofilter.CustomRealm"></bean>
+
+    <!-- 安全管理器 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="customRealm"/>
+    </bean>
+
+    <!-- Shiro的Web过滤器 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <property name="loginUrl" value="/Admin/Login"/>
+        <!-- <property name="successUrl" value="/Admin/Panel"/> -->
+        <!-- 通过unauthorizedUrl指定没有权限操作时跳转页面-->
+        <!-- <property name="unauthorizedUrl" value="403.jsp"/> -->
+        <!-- 
+        anon:例子/admins/**=anon 没有参数，表示可以匿名使用
+        authc:例如/admins/user/**=authc表示需要认证(登录)才能使用，没有参数
+        roles：例子/admins/user/**=roles[admin],参数可以写多个，多个时必须加上引号
+         -->
+        <property name="filterChainDefinitions">
+            <value>
+                /Admin/Login= anon
+                /Admin/Validate = anon
+                /Admin/** = authc
+                /User/**=authc
+                /User/ToJsonObj = roles["admin"]
+                /Admin/AdminRoles = roles["admin"]
+            </value>
+        </property>
+    </bean>
+
+    <!--Shiro生命周期处理器-->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+    
+    <!--启用shiro注解-->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor"/>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+</beans>
